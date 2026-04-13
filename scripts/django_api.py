@@ -5,7 +5,9 @@ Django API接口模块
 import os
 import sys
 import django
-
+"""
+author:cmxx 648
+"""
 # 设置Django环境
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend', 'medical_followup'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.medical_followup.settings')

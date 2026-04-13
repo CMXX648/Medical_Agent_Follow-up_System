@@ -1,4 +1,4 @@
-# 医疗随访管理系统
+# Agent医疗随访管理系统
 
 ## 1. 项目介绍
 本项目将医生端 Django 管理系统与 AI 随访能力打通，形成“医生录入 -> 系统自动随访 -> 自动决策是否继续跟进”的闭环。
@@ -8,6 +8,12 @@
 2. Celery + Redis 负责定时调度和异步执行。
 3. Survey Agent 负责生成对话、问卷结构化结果和健康建议。
 4. 决策 Agent 负责判断是否继续随访并回写患者状态。
+
+![前端页面展示1](docs\06.png)
+
+![前端页面展示3](docs\41.png)
+
+![Docker容器](docs\29.png)
 
 ## 2. 已实现功能
 1. 医生用户注册、登录、个人信息维护。
@@ -118,15 +124,18 @@ venv\Scripts\celery.exe -A backend.medical_followup beat -l info
 ```
 
 访问地址：
+
 1. 业务页面：http://127.0.0.1:8001/
 2. 后台管理：http://127.0.0.1:8001/admin/
 
 ### 7.2 Docker Compose
+
 ```bash
 docker-compose up -d
 ```
 
 ## 8. 自动随访执行流程
+
 1. 医生录入患者并设置 next_follow_up_date。
 2. Celery Beat 每天 08:00 扫描当天待随访患者。
 3. Worker 执行 run_patient_followup 任务。
@@ -138,22 +147,29 @@ docker-compose up -d
 6. 系统写入 FollowUpRecord，并更新 Patient.followup_status 与 next_follow_up_date。
 
 ## 9. 常用命令
+
 检查 Django 配置：
+
 ```bash
 venv\Scripts\python.exe backend/medical_followup/manage.py check
 ```
 
 检查迁移是否完整：
+
 ```bash
 venv\Scripts\python.exe backend/medical_followup/manage.py makemigrations --check
 ```
 
 手动运行一次自动随访（示例入口）：
+
 ```bash
 venv\Scripts\python.exe survey/main.py --patient-name 张三
 ```
 
-## 10. 后续建议
+## 10. 后续优化方向
+
 1. 将 survey/agent.py 的 mock 对话替换为真实电话外呼或短信问卷渠道。
 2. 增加 Celery 任务重试、告警和幂等保护。
-3. 补充自动化测试（模型、任务、决策解析、状态回写）。
+3. 各功能模块中有关模型参与部分的优化(如更精炼的问卷设计、更智能的决策逻辑等)
+4. 补充自动化测试（模型、任务、决策解析、状态回写）。
+5. RAG 模块增加更多医疗知识库和更智能的检索策略。

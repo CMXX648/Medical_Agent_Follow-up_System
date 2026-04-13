@@ -18,6 +18,9 @@ except Exception:
     # 允许在未安装 python-dotenv 的环境中运行
     pass
 
+"""
+author: cmx x648
+"""
 
 def _load_local_env_file():
     env_path = Path(__file__).resolve().parents[1] / '.env'

@@ -7,6 +7,9 @@ For more information on this file, see
 https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 """
 
+"""
+author:cmxx648 
+"""
 import os
 
 from django.core.wsgi import get_wsgi_application

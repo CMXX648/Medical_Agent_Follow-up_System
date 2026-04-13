@@ -1,6 +1,9 @@
 from .file_utils import generate_survey_from_file
 from utils.paths import QUESTIONNAIRE_TXT_PATH, SURVEY_PDF_PATH, ensure_output_dir
 
+"""
+author:cmxx648 
+"""
 
 def main():
     file_path = SURVEY_PDF_PATH
