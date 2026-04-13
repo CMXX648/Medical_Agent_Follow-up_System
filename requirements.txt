@@ -1,0 +1,17 @@
+django
+psycopg2-binary
+celery
+redis
+django-celery-beat
+openai
+python-dotenv
+langchain
+langchain-openai
+langchain-community
+langchain-core
+faiss-cpu
+requests
+lxml
+websocket-client
+pyaudio
+Pillow

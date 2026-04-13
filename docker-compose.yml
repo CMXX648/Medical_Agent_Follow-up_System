@@ -1,0 +1,110 @@
+services:
+  db:
+    image: postgres:16
+    container_name: followup_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medical_followup
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d medical_followup"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: followup_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/medical_followup/Dockerfile
+    container_name: followup_web
+    restart: unless-stopped
+    working_dir: /app/backend/medical_followup
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
+    environment:
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost"
+      DB_NAME: "medical_followup"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres123"
+      DB_HOST: "db"
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+    volumes:
+      - ./:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: backend/medical_followup/Dockerfile
+    container_name: followup_celery_worker
+    restart: unless-stopped
+    working_dir: /app/backend/medical_followup
+    command: celery -A backend.medical_followup worker -l info
+    environment:
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost"
+      DB_NAME: "medical_followup"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres123"
+      DB_HOST: "db"
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+    volumes:
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: backend/medical_followup/Dockerfile
+    container_name: followup_celery_beat
+    restart: unless-stopped
+    working_dir: /app/backend/medical_followup
+    command: celery -A backend.medical_followup beat -l info
+    environment:
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost"
+      DB_NAME: "medical_followup"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres123"
+      DB_HOST: "db"
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+    volumes:
+      - ./:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:

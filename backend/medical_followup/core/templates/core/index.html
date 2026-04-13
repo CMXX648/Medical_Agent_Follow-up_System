@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 医疗随访管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a56db',
+                        secondary: '#e2e8f0',
+                        accent: '#3b82f6',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        info: '#3b82f6',
+                        light: '#f8fafc',
+                        dark: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-all duration-300;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-dark px-4 py-2 rounded-lg hover:bg-secondary/80 transition-all duration-300;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-heartbeat text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">医疗随访管理系统</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'index' %}" class="text-primary font-medium border-b-2 border-primary pb-1">首页</a>
+                <a href="{% url 'patient_list' %}" class="text-gray-600 hover:text-primary transition-colors duration-200">患者管理</a>
+                <a href="{% url 'profile' %}" class="text-gray-600 hover:text-primary transition-colors duration-200">个人信息</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-primary font-medium">{{ user.username|first|upper }}</span>
+                        </div>
+                        <span class="text-gray-700 hidden md:inline">{{ user.username }}</span>
+                        <i class="fa fa-caret-down text-gray-500"></i>
+                    </button>
+                </div>
+                <a href="{% url 'logout' %}" class="text-gray-600 hover:text-danger transition-colors duration-200">
+                    <i class="fa fa-sign-out"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 欢迎信息 -->
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">欢迎回来，{{ user.get_full_name|default:user.username }} 医生</h2>
+                    <p class="text-gray-600 mt-1">今天是 {% now "Y年m月d日" %}，祝您工作愉快！</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="{% url 'patient_list' %}" class="btn-primary flex items-center">
+                        <i class="fa fa-user-plus mr-2"></i> 添加患者
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold text-gray-800">患者总数</h4>
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fa fa-user-o text-primary"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-primary">{{ patient_count }}</p>
+                <p class="text-sm text-gray-600 mt-2">点击查看全部患者</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold text-gray-800">随访记录</h4>
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fa fa-list-alt text-success"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-success">{{ record_count }}</p>
+                <p class="text-sm text-gray-600 mt-2">查看随访历史</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold text-gray-800">待随访</h4>
+                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <i class="fa fa-clock-o text-warning"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold text-warning">{{ pending_count }}</p>
+                <p class="text-sm text-gray-600 mt-2">需要及时处理</p>
+            </div>
+        </div>
+
+        <!-- 最近随访记录 -->
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">最近随访记录</h3>
+                <a href="{% url 'patient_list' %}" class="text-primary hover:underline">查看全部</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">患者姓名</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">随访日期</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">随访类型</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                            <th class="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for record in recent_records %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ record.patient.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ record.record_date|date:"Y-m-d" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">常规随访</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'patient_detail' record.patient.id %}" class="text-primary hover:text-primary/80">查看详情</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">暂无随访记录</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 快捷操作 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{% url 'patient_list' %}" class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-users text-primary text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-gray-800">患者管理</h4>
+                        <p class="text-sm text-gray-600">查看和管理患者信息</p>
+                    </div>
+                </div>
+            </a>
+            <a href="#" class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-calendar-check-o text-success text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-gray-800">随访计划</h4>
+                        <p class="text-sm text-gray-600">安排和管理随访计划</p>
+                    </div>
+                </div>
+            </a>
+            <a href="#" class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-bar-chart text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-gray-800">统计分析</h4>
+                        <p class="text-sm text-gray-600">查看随访统计数据</p>
+                    </div>
+                </div>
+            </a>
+            <a href="{% url 'profile' %}" class="bg-white rounded-xl shadow p-6 card-hover">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-user-md text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-lg font-semibold text-gray-800">个人中心</h4>
+                        <p class="text-sm text-gray-600">管理个人信息</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-gray-600 text-sm mb-4 md:mb-0">
+                    © 2026 医疗随访管理系统. 保留所有权利.
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200">
+                        <i class="fa fa-question-circle"></i> 帮助
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200">
+                        <i class="fa fa-envelope"></i> 联系我们
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200">
+                        <i class="fa fa-info-circle"></i> 关于
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

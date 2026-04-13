@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>患者管理 - 医疗随访管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a56db',
+                        secondary: '#e2e8f0',
+                        accent: '#3b82f6',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        info: '#3b82f6',
+                        light: '#f8fafc',
+                        dark: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-all duration-300;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-dark px-4 py-2 rounded-lg hover:bg-secondary/80 transition-all duration-300;
+            }
+            .btn-danger {
+                @apply bg-danger text-white px-4 py-2 rounded-lg hover:bg-danger/90 transition-all duration-300;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-heartbeat text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-800">医疗随访管理系统</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'index' %}" class="text-gray-600 hover:text-primary transition-colors duration-200">首页</a>
+                <a href="{% url 'patient_list' %}" class="text-primary font-medium border-b-2 border-primary pb-1">患者管理</a>
+                <a href="{% url 'profile' %}" class="text-gray-600 hover:text-primary transition-colors duration-200">个人信息</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-primary font-medium">{{ user.username|first|upper }}</span>
+                        </div>
+                        <span class="text-gray-700 hidden md:inline">{{ user.username }}</span>
+                        <i class="fa fa-caret-down text-gray-500"></i>
+                    </button>
+                </div>
+                <a href="{% url 'logout' %}" class="text-gray-600 hover:text-danger transition-colors duration-200">
+                    <i class="fa fa-sign-out"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 页面标题 -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">患者管理</h2>
+                <p class="text-gray-600 mt-1">管理患者信息，查看随访记录</p>
+            </div>
+            <a href="/admin/core/patient/add/" class="btn-primary flex items-center">
+                <i class="fa fa-plus mr-2"></i> 添加患者
+            </a>
+        </div>
+
+        <!-- 搜索和筛选 -->
+        <div class="bg-white rounded-xl shadow p-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex-1">
+                    <div class="relative">
+                        <input type="text" placeholder="搜索患者姓名或电话" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <i class="fa fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <option>全部性别</option>
+                        <option>男</option>
+                        <option>女</option>
+                    </select>
+                    <button class="btn-secondary">
+                        <i class="fa fa-filter mr-1"></i> 筛选
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 患者列表 -->
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                姓名
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                性别
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                年龄
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                电话
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                上次随访
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                下次随访
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                随访状态
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                操作
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for patient in patients %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ patient.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ patient.gender }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ patient.age }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ patient.phone }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ patient.last_follow_up|date:"Y-m-d"|default:"未随访" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ patient.next_follow_up_date|date:"Y-m-d"|default:"未安排" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ patient.get_followup_status_display }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'patient_detail' patient.id %}" class="text-primary hover:text-primary/80 mr-3">
+                                    <i class="fa fa-eye"></i> 详情
+                                </a>
+                                <a href="/admin/core/patient/{{ patient.id }}/change/" class="text-gray-600 hover:text-gray-900 mr-3">
+                                    <i class="fa fa-edit"></i> 编辑
+                                </a>
+                                <a href="/admin/core/followuprecord/add/?patient={{ patient.id }}" class="text-success hover:text-success/80">
+                                    <i class="fa fa-plus-circle"></i> 随访
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="px-6 py-10 text-center text-gray-500">
+                                <div class="flex flex-col items-center">
+                                    <i class="fa fa-user-o text-4xl text-gray-300 mb-4"></i>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-2">暂无患者信息</h3>
+                                    <p class="text-gray-600 mb-4">请添加患者信息</p>
+                                    <a href="/admin/core/patient/add/" class="btn-primary inline-flex items-center">
+                                        <i class="fa fa-plus mr-2"></i> 添加患者
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- 分页 -->
+            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        上一页
+                    </a>
+                    <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        下一页
+                    </a>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 共 <span class="font-medium">12</span> 条记录
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">上一页</span>
+                                <i class="fa fa-chevron-left"></i>
+                            </a>
+                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary text-sm font-medium text-white">
+                                1
+                            </a>
+                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                2
+                            </a>
+                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">下一页</span>
+                                <i class="fa fa-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-gray-600 text-sm mb-4 md:mb-0">
+                    © 2026 医疗随访管理系统. 保留所有权利.
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200">
+                        <i class="fa fa-question-circle"></i> 帮助
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200">
+                        <i class="fa fa-envelope"></i> 联系我们
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors duration-200">
+                        <i class="fa fa-info-circle"></i> 关于
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
